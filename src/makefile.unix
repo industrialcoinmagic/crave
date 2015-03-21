@@ -135,7 +135,8 @@ OBJS= \
     obj/scrypt-x86.o \
     obj/scrypt-x86_64.o \
     obj/chainparams.o \
-    obj/irc.o
+    obj/irc.o \
+    obj/stealth.o
 
 ifeq (${USE_WALLET}, 1)
     DEFS += -DENABLE_WALLET

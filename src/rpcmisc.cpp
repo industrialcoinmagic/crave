@@ -11,6 +11,7 @@
 #include "rpcserver.h"
 #include "timedata.h"
 #include "util.h"
+#include "stealth.h"
 #ifdef ENABLE_WALLET
 #include "wallet.h"
 #include "walletdb.h"
@@ -107,6 +108,12 @@ public:
         obj.push_back(Pair("addresses", a));
         if (whichType == TX_MULTISIG)
             obj.push_back(Pair("sigsrequired", nRequired));
+        return obj;
+    }
+
+    Object operator()(const CStealthAddress &stxAddr) const {
+        Object obj;
+        obj.push_back(Pair("todo", true));
         return obj;
     }
 };
