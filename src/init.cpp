@@ -836,7 +836,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     RandAddSeedPerfmon();
 
     // reindex addresses found in blockchain
-    if(GetBoolArg("-reindexaddr", true))
+    if(GetBoolArg("-reindexaddr", false))
     {
         uiInterface.InitMessage(_("Rebuilding address index..."));
         CBlockIndex *pblockAddrIndex = pindexBest;

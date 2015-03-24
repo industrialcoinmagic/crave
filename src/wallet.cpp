@@ -1073,7 +1073,16 @@ void CWalletTx::RelayWalletTransaction()
 
 void CWallet::ResendWalletTransactions(bool fForce)
 {
-    if (!fForce)
+    // Only Once Broadcasting
+    // Don't rebroadcast our wallet tx's, to avoid giving away that
+    // these are our transactions.
+    // If it doesn't make it into a block because the user is not
+    // well connected to other nodes etc., the user
+    // can use resendtx or use a 3rd party service to relay the tx
+    // so, just return here
+    return;
+
+    /*if (!fForce)
     {
         // Do this infrequently and randomly to avoid giving away
         // that these are our transactions.
@@ -1115,7 +1124,7 @@ void CWallet::ResendWalletTransactions(bool fForce)
             else
                 LogPrintf("ResendWalletTransactions() : CheckTransaction failed for transaction %s\n", wtx.GetHash().ToString());
         }
-    }
+    }*/
 }
 
 

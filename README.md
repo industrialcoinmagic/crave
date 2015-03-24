@@ -3,30 +3,26 @@ Crave development tree
 
 Crave is a PoS-based cryptocurrency.
 
-Development process
-===========================
+CRAVE is dependent upon libsecp256k1 by sipa, the sources for which can be found here:
+https://github.com/bitcoin/secp256k1
 
-Developers work in their own trees, then submit pull requests when
-they think their feature or bug fix is ready.
+Total POW: 10,000 Blocks
+POW Reward: 100 CRAVE per Block
+POS Reward: 1 CRAVE (HiPOS)
+Block Spacing: 60 Seconds
+Diff Retarget: 24 Blocks
+Maturity: 188 Blocks
+Stake Minimum Age: 8 Hours
 
-The patch will be accepted if there is broad consensus that it is a
-good thing.  Developers should expect to rework and resubmit patches
-if they don't match the project's coding conventions (see coding.txt)
-or are controversial.
+40 MegaByte Maximum Block Size (40X Bitcoin Core)
 
-The master branch is regularly built and tested, but is not guaranteed
-to be completely stable. Tags are regularly created to indicate new
-stable release versions of Crave.
+Port: 30104
+RPC Port: 30105
 
-Feature branches are created when there are major new features being
-worked on by several people.
+Magic Bytes: 0x1f 0x22 0x05 0x31
 
-From time to time a pull request will become outdated. If this occurs, and
-the pull is no longer automatically mergeable; a comment on the pull will
-be used to issue a warning of closure. The pull will be closed 15 days
-after the warning if action is not taken by the author. Pull requests closed
-in this manner will have their corresponding issue labeled 'stagnant'.
+CRAVE includes an Address Index feature, based on the address index API (searchrawtransactions RPC command) implemented in Bitcoin Core but modified implementation to work with the CRAVE codebase (PoS coins maintain a txindex by default for instance).
 
-Issues with no commits will be given a similar warning, and closed after
-15 days from their last activity. Issues closed in this manner will be 
-labeled 'stale'.
+Initialize the Address Index By Running with -reindexaddr Command Line Argument.  It may take 10-15 minutes to build the initial index.
+
+
