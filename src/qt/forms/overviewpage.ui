@@ -32,8 +32,10 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1">
+    <layout class="FlowLayout" name="horizontalLayout">
      <item>
+      <widget class="QWidget" name="columnOneWidget">
+      
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
         <widget class="QWidget" name="widget" native="true">
@@ -279,8 +281,12 @@
         </spacer>
        </item>
       </layout>
-     </item>
-     <item>
+     
+</widget>
+</item>
+<item>
+<widget class="QWidget" name="columnTwoWidget">
+      
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
         <widget class="QWidget" name="widget_2" native="true">
@@ -355,11 +361,21 @@
         </widget>
        </item>
       </layout>
-     </item>
-    </layout>
+     
+</widget>
+</item>
+</layout>
    </item>
   </layout>
  </widget>
+<customwidgets>
+  <customwidget>
+   <class>FlowLayout</class>
+   <extends>QLayout</extends>
+   <header>flowlayout.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

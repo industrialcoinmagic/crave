@@ -57,9 +57,11 @@
 #include <QUrl>
 #include <QMimeData>
 #include <QStyle>
+#include <QToolButton>
 
 #include <iostream>
 
+extern bool fOnlyTor;
 extern CWallet* pwalletMain;
 extern int64_t nLastCoinStakeSearchInterval;
 double GetPoSKernelPS();
@@ -80,7 +82,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     prevBlocks(0),
     nWeight(0)
 {
-    resize(450, 400);
+    resize(320, 400);
     setWindowTitle(tr("Crave") + " - " + tr("Wallet"));
 #ifndef Q_OS_MAC
     qApp->setWindowIcon(QIcon(":icons/bitcoin"));
@@ -89,6 +91,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     //setUnifiedTitleAndToolBarOnMac(true);
     QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
 #endif
+    setObjectName("crave");
+    setStyleSheet("#crave { background-color: qradialgradient(cx: -0.8, cy: 0, fx: -0.8, fy: 0, radius: 1.4, stop: 0 #efefef, stop: 1 #dedede);  }");
     // Accept D&D of URIs
     setAcceptDrops(true);
 
@@ -130,15 +134,16 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     QWidget *centralWidget = new QWidget();
     QVBoxLayout *centralLayout = new QVBoxLayout(centralWidget);
-#ifndef Q_OS_MAC
-    centralLayout->addWidget(appMenuBar);
-#endif
+
     centralLayout->addWidget(centralStackedWidget);
 
     setCentralWidget(centralWidget);
 
     // Create status bar
     statusBar();
+
+    // Disable size grip because it looks ugly and nobody needs it
+    statusBar()->setSizeGripEnabled(false);
 
     // Status bar notification icons
     QWidget *frameBlocks = new QWidget();
@@ -162,7 +167,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     frameBlocksLayout->addStretch();
     frameBlocksLayout->addWidget(labelBlocksIcon);
     frameBlocksLayout->addStretch();
-    toolbar->addWidget(frameBlocks);
+    
 
     if (GetBoolArg("-staking", true))
     {
@@ -193,6 +198,9 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     statusBar()->addWidget(progressBarLabel);
     statusBar()->addWidget(progressBar);
+    statusBar()->addPermanentWidget(frameBlocks);
+    statusBar()->setObjectName("statusBar");
+    statusBar()->setStyleSheet("#statusBar { background-color: qradialgradient(cx: -0.8, cy: 0, fx: -0.8, fy: 0, radius: 0.6, stop: 0 #404040, stop: 1 #101010);  }");
 
     syncIconMovie = new QMovie(fUseBlackTheme ? ":/movies/update_spinner_black" : ":/movies/update_spinner", "mng", this);
 
@@ -318,7 +326,11 @@ void BitcoinGUI::createActions()
 
 void BitcoinGUI::createMenuBar()
 {
+#ifdef Q_OS_MAC
     appMenuBar = new QMenuBar();
+#else
+    appMenuBar = menuBar();
+#endif
 
     // Configure the menus
     QMenu *file = appMenuBar->addMenu(tr("&File"));
@@ -347,8 +359,8 @@ void BitcoinGUI::createMenuBar()
 static QWidget* makeToolBarSpacer()
 {
     QWidget* spacer = new QWidget();
-    spacer->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-    spacer->setStyleSheet(fUseBlackTheme ? "QWidget { background: rgb(30,32,36); }" : "QWidget { background: none; }");
+    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    spacer->setStyleSheet("QWidget { background: none; }");
     return spacer;
 }
 
@@ -357,31 +369,52 @@ void BitcoinGUI::createToolBars()
     toolbar = new QToolBar(tr("Tabs toolbar"));
     toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
+    toolbar->setObjectName("tabs");
+    toolbar->setStyleSheet("#tabs { background-color: qradialgradient(cx: -0.8, cy: 0, fx: -0.8, fy: 0, radius: 0.6, stop: 0 #404040, stop: 1 #101010);  }");
 
-    if (fUseBlackTheme)
-    {
-        QWidget* header = new QWidget();
-        header->setMinimumSize(160, 116);
-        header->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-        header->setStyleSheet("QWidget { background-color: rgb(24,26,30); background-repeat: no-repeat; background-image: url(:/images/header); background-position: top center; }");
-        toolbar->addWidget(header);
-        toolbar->addWidget(makeToolBarSpacer());
-    }
+    QLabel* header = new QLabel();
+    header->setMinimumSize(48, 48);
+    header->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    header->setPixmap(QPixmap(":/icons/bitcoin"));
+    header->setMaximumSize(48,48);
+    header->setScaledContents(true);
+    toolbar->addWidget(header);
 
-    toolbar->addAction(overviewAction);
-    toolbar->addAction(receiveCoinsAction);
-    toolbar->addAction(sendCoinsAction);
-    toolbar->addAction(historyAction);
-    toolbar->addAction(addressBookAction);
+    QMenu *toolbarMenu = new QMenu();
+    toolbarMenu->addAction(overviewAction);
+    toolbarMenu->addAction(receiveCoinsAction);
+    toolbarMenu->addAction(sendCoinsAction);
+    toolbarMenu->addAction(historyAction);
+    toolbarMenu->addAction(addressBookAction);
+
+    QToolButton* menuToolButton = new QToolButton();
+    menuToolButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    menuToolButton->setMenu(toolbarMenu);
+    menuToolButton->setPopupMode(QToolButton::InstantPopup);
+    QAction* menuAction = new QAction(QIcon(":/icons/overview"), tr("&Menu"), this);
+    menuAction->setToolTip(tr("Access Crave Wallet Tabs"));
+    menuAction->setCheckable(false);
+    connect(menuAction, SIGNAL(triggered()), this, SLOT(menuToolButton->showMenu()));
+    menuToolButton->setDefaultAction(menuAction);
+    
+    toolbar->addWidget(menuToolButton);
+
+    netLabel = new QLabel();
+    
 
     toolbar->addWidget(makeToolBarSpacer());
+    netLabel->setObjectName("netLabel");
+    netLabel->setStyleSheet("#netLabel { color: #efefef; }");
+    toolbar->addWidget(netLabel);
+    
+    //toolbar->addWidget(makeToolBarSpacer());
 
-    toolbar->setOrientation(Qt::Vertical);
+    toolbar->setOrientation(Qt::Horizontal);
     toolbar->setMovable(false);
 
-    addToolBar(Qt::LeftToolBarArea, toolbar);
+    addToolBar(Qt::TopToolBarArea, toolbar);
 
-    int w = 0;
+    /*int w = 0;
 
     foreach(QAction *action, toolbar->actions()) {
         w = std::max(w, toolbar->widgetForAction(action)->width());
@@ -389,11 +422,25 @@ void BitcoinGUI::createToolBars()
 
     foreach(QAction *action, toolbar->actions()) {
         toolbar->widgetForAction(action)->setFixedWidth(w);
-    }
+    }*/
 }
 
 void BitcoinGUI::setClientModel(ClientModel *clientModel)
 {
+    if(!fOnlyTor)
+	netLabel->setText("CLEARNET");
+    else
+    {
+	if(!IsLimited(NET_TOR))
+	{
+	    netLabel->setMinimumSize(48, 48);
+    	    netLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    	    netLabel->setPixmap(QPixmap(":/icons/onion"));
+    	    netLabel->setMaximumSize(48,48);
+    	    netLabel->setScaledContents(true);
+	}
+    }
+
     this->clientModel = clientModel;
     if(clientModel)
     {
@@ -542,15 +589,6 @@ void BitcoinGUI::setNumConnections(int count)
 
 void BitcoinGUI::setNumBlocks(int count)
 {
-    // don't show / hide progress bar and its label if we have no connection to the network
-    if (!clientModel || (clientModel->getNumConnections() == 0 && !clientModel->isImporting()))
-    {
-        statusBar()->setVisible(false);
-
-        return;
-    }
-
-    bool fShowStatusBar = false;
     QString tooltip;
 
     QDateTime lastBlockDate = clientModel->getLastBlockDate();
@@ -604,8 +642,7 @@ void BitcoinGUI::setNumBlocks(int count)
         progressBar->setMaximum(totalSecs);
         progressBar->setValue(totalSecs - secs);
         progressBar->setVisible(true);
-        fShowStatusBar = true;
-
+        
         tooltip = tr("Catching up...") + QString("<br>") + tooltip;
         labelBlocksIcon->setMovie(syncIconMovie);
         if(count != prevBlocks)
@@ -627,7 +664,7 @@ void BitcoinGUI::setNumBlocks(int count)
     progressBarLabel->setToolTip(tooltip);
     progressBar->setToolTip(tooltip);
 
-    statusBar()->setVisible(fShowStatusBar);
+    statusBar()->setVisible(true);
 }
 
 void BitcoinGUI::message(const QString &title, const QString &message, bool modal, unsigned int style)

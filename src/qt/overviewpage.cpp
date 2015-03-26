@@ -103,6 +103,9 @@ OverviewPage::OverviewPage(QWidget *parent) :
     filter(0)
 {
     ui->setupUi(this);
+    ui->columnTwoWidget->setContentsMargins(0,0,0,0);
+    ui->columnTwoWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    ui->columnTwoWidget->setMinimumWidth(300);
 
     // Recent transactions
     ui->listTransactions->setItemDelegate(txdelegate);

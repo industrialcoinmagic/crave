@@ -76,6 +76,8 @@ const string strMessageMagic = "Crave Signed Message:\n";
 
 extern enum Checkpoints::CPMode CheckpointsMode;
 
+std::set<uint256> setValidatedTx;
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // dispatching functions
@@ -733,6 +735,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree,
 
     // Store transaction in memory
     pool.addUnchecked(hash, tx);
+    setValidatedTx.insert(hash);
 
     SyncWithWallets(tx, NULL);
 
@@ -1509,6 +1512,7 @@ void CBlock::RebuildAddressIndex(CTxDB& txdb)
     }
 }
 
+static int64_t nTimeConnect = 0;
 bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 {
     // Check it again in case a previous version let a bad block in, but skip BlockSig checking
@@ -1532,9 +1536,13 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     int64_t nValueOut = 0;
     int64_t nStakeReward = 0;
     unsigned int nSigOps = 0;
+    int nTxCacheHits = 0;
+    int nInputs = 0;
+    int64_t nTimeStart = GetTimeMicros();
     BOOST_FOREACH(CTransaction& tx, vtx)
     {
         uint256 hashTx = tx.GetHash();
+	nInputs += tx.vin.size();
 
         // Do not allow blocks that contain transactions which 'overwrite' older transactions,
         // unless those are already completely spent.
@@ -1588,12 +1596,25 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             if (tx.IsCoinStake())
                 nStakeReward = nTxValueOut - nTxValueIn;
 
-            if (!tx.ConnectInputs(txdb, mapInputs, mapQueuedChanges, posThisTx, pindex, true, false, flags))
-                return false;
+	    if(setValidatedTx.find(hashTx) == setValidatedTx.end())
+	    {
+                if (!tx.ConnectInputs(txdb, mapInputs, mapQueuedChanges, posThisTx, pindex, true, false, flags))
+                    return false;
+		else
+		    setValidatedTx.insert(hashTx);
+	    }
+	    else
+	    {
+		++nTxCacheHits;
+	    }
         }
 
         mapQueuedChanges[hashTx] = CTxIndex(posThisTx, tx.vout.size());
     }
+
+    int64_t nTime1 = GetTimeMicros(); nTimeConnect += nTime1 - nTimeStart;
+    LogPrintf("bench      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n", (unsigned)vtx.size(), 0.001 * (nTime1 - nTimeStart), 0.001 * (nTime1 - nTimeStart) / vtx.size(), nInputs <= 1 ? 0 : 0.001 * (nTime1 - nTimeStart) / (nInputs-1), nTimeConnect * 0.000001);
+    LogPrintf("bench      - %u transaction validations cached\n", nTxCacheHits);
 
     if (IsProofOfWork())
     {
