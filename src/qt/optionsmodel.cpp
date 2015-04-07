@@ -48,6 +48,15 @@ void OptionsModel::Init()
     language = settings.value("language", "").toString();
     fUseBlackTheme = settings.value("fUseBlackTheme", false).toBool();
 
+    if (!settings.contains("nDarksendRounds"))
+        settings.setValue("nDarksendRounds", 2);
+
+    if (!settings.contains("nAnonymizeCraveAmount"))
+        settings.setValue("nAnonymizeCraveAmount", 1000);
+
+    nDarksendRounds = settings.value("nDarksendRounds").toLongLong();
+    nAnonymizeCraveAmount = settings.value("nAnonymizeCraveAmount").toLongLong();
+
     // These are shared with core Bitcoin; we want
     // command-line options to override the GUI settings:
     if (settings.contains("fUseUPnP"))
@@ -58,6 +67,11 @@ void OptionsModel::Init()
         SoftSetBoolArg("-minimizecoinage", settings.value("fMinimizeCoinAge").toBool());
     if (!language.isEmpty())
         SoftSetArg("-lang", language.toStdString());
+
+    if (settings.contains("nDarksendRounds"))
+        SoftSetArg("-darksendrounds", settings.value("nDarksendRounds").toString().toStdString());
+    if (settings.contains("nAnonymizeCraveAmount"))
+        SoftSetArg("-anonymizecraveamount", settings.value("nAnonymizeCraveAmount").toString().toStdString());
 }
 
 int OptionsModel::rowCount(const QModelIndex & parent) const
@@ -196,6 +210,16 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
         case UseBlackTheme:
             fUseBlackTheme = value.toBool();
             settings.setValue("fUseBlackTheme", fUseBlackTheme);
+            break;
+        case DarksendRounds:
+            nDarksendRounds = value.toInt();
+            settings.setValue("nDarksendRounds", nDarksendRounds);
+            emit darksendRoundsChanged(nDarksendRounds);
+            break;
+        case anonymizeCraveAmount:
+            nAnonymizeCraveAmount = value.toInt();
+            settings.setValue("nAnonymizeCraveAmount", nAnonymizeCraveAmount);
+            emit anonymizeCraveAmountChanged(nAnonymizeCraveAmount);
             break;
         default:
             break;

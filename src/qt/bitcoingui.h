@@ -22,6 +22,7 @@ class QLabel;
 class QModelIndex;
 class QProgressBar;
 class QStackedWidget;
+class QScrollArea;
 QT_END_NAMESPACE
 
 /**
@@ -60,6 +61,8 @@ private:
 
     QStackedWidget *centralStackedWidget;
 
+    QWidget *overviewWidget;
+    QScrollArea *overviewScroll;
     OverviewPage *overviewPage;
     QWidget *transactionsPage;
     AddressBookPage *addressBookPage;

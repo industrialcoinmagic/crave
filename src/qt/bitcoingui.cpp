@@ -58,6 +58,8 @@
 #include <QMimeData>
 #include <QStyle>
 #include <QToolButton>
+#include <QScrollArea>
+#include <QScroller>
 
 #include <iostream>
 
@@ -82,7 +84,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     prevBlocks(0),
     nWeight(0)
 {
-    resize(320, 400);
+    resize(320, 600);
     setWindowTitle(tr("Crave") + " - " + tr("Wallet"));
 #ifndef Q_OS_MAC
     qApp->setWindowIcon(QIcon(":icons/bitcoin"));
@@ -111,6 +113,21 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     // Create tabs
     overviewPage = new OverviewPage();
 
+    //overviewWidget = new QWidget();
+    //overviewWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    
+
+    //QHBoxLayout *overviewLayout = new QHBoxLayout();
+    //overviewLayout->setContentsMargins(0, 0, 0, 0);
+    //overviewLayout->setObjectName(QString::fromUtf8("overviewLayout"));
+    //overviewWidget->setLayout(overviewLayout);
+    //overviewScroll = new QScrollArea(overviewPage);//overviewWidget);
+    //overviewScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    //overviewScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    //overviewScroll->setWidget(overviewPage);
+    //overviewScroll->setWidgetResizable(true);
+    //QScroller::grabGesture(overviewScroll, QScroller::LeftMouseButtonGesture); //Replace TouchGesture with LeftMouseButtonGesture and it works flawlessly
+
     //transactionsPage = new QWidget(this);
     //QVBoxLayout *vbox = new QVBoxLayout();
     //transactionView = new TransactionView(this);
@@ -126,7 +143,9 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     signVerifyMessageDialog = new SignVerifyMessageDialog(this);
 
     centralStackedWidget = new QStackedWidget(this);
+    centralStackedWidget->setContentsMargins(0, 0, 0, 0);
     centralStackedWidget->addWidget(overviewPage);
+    //centralStackedWidget->addWidget(overviewWidget);
     //centralStackedWidget->addWidget(transactionsPage);
     //centralStackedWidget->addWidget(addressBookPage);
     //centralStackedWidget->addWidget(receiveCoinsPage);
@@ -134,7 +153,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     QWidget *centralWidget = new QWidget();
     QVBoxLayout *centralLayout = new QVBoxLayout(centralWidget);
-
+    centralLayout->setContentsMargins(0,0,0,0);
+    centralWidget->setContentsMargins(0,0,0,0);
     centralLayout->addWidget(centralStackedWidget);
 
     setCentralWidget(centralWidget);
