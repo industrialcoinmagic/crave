@@ -1197,7 +1197,7 @@ int nTargetSpacing = 60;
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
-    if(GetTime() > STAKE_TIMESPAN_SWITCH_TIME)
+    if(pindexLast->GetBlockTime() > STAKE_TIMESPAN_SWITCH_TIME)
 	nTargetTimespan = 2 * 60; // 2 minutes
 
     CBigNum bnTargetLimit = fProofOfStake ? GetProofOfStakeLimit(pindexLast->nHeight) : Params().ProofOfWorkLimit();
