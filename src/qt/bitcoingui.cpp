@@ -32,6 +32,7 @@
 #include "wallet.h"
 #include "init.h"
 #include "ui_interface.h"
+#include "masternodemanager.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -287,6 +288,11 @@ void BitcoinGUI::createActions()
     addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(addressBookAction);
 
+    masternodeManagerAction = new QAction(QIcon(":/icons/bitcoin"), tr("&Adrenaline"), this);
+    masternodeManagerAction->setToolTip(tr("Show Adrenaline Nodes status and configure your nodes."));
+    masternodeManagerAction->setCheckable(true);
+    tabGroup->addAction(masternodeManagerAction);
+
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
     connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -297,6 +303,8 @@ void BitcoinGUI::createActions()
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
+    connect(masternodeManagerAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(masternodeManagerAction, SIGNAL(triggered()), this, SLOT(gotoMasternodeManagerPage()));
 
     quitAction = new QAction(tr("E&xit"), this);
     quitAction->setToolTip(tr("Quit application"));
@@ -406,6 +414,7 @@ void BitcoinGUI::createToolBars()
     toolbarMenu->addAction(sendCoinsAction);
     toolbarMenu->addAction(historyAction);
     toolbarMenu->addAction(addressBookAction);
+    toolbarMenu->addAction(masternodeManagerAction);
 
     QToolButton* menuToolButton = new QToolButton();
     menuToolButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
@@ -824,6 +833,19 @@ void BitcoinGUI::clearWidgets()
         centralStackedWidget->removeWidget(widget);
         widget->deleteLater();
     }
+}
+
+void BitcoinGUI::gotoMasternodeManagerPage()
+{
+    masternodeManagerAction->setChecked(true);
+    clearWidgets();
+
+    masternodeManagerPage = new MasternodeManager(this);
+    centralStackedWidget->addWidget(masternodeManagerPage);
+    centralStackedWidget->setCurrentWidget(masternodeManagerPage);
+
+    exportAction->setEnabled(false);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 
 void BitcoinGUI::gotoOverviewPage()

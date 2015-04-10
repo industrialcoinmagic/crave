@@ -44,14 +44,14 @@ void CActiveMasternode::ManageStatus()
 
         LogPrintf("CActiveMasternode::ManageStatus() - Checking inbound connection to '%s'\n", service.ToString().c_str());
 
-        
-            if(service.GetPort() != 9999) {
+          // CRAVENOTE: There is no logical reason to restrict this to a specific port.  Its a peer, what difference does it make.
+          /*  if(service.GetPort() != 9999) {
                 notCapableReason = "Invalid port: " + boost::lexical_cast<string>(service.GetPort()) + " -only 9999 is supported on mainnet.";
                 status = MASTERNODE_NOT_CAPABLE;
                 LogPrintf("CActiveMasternode::ManageStatus() - not capable: %s\n", notCapableReason.c_str());
                 return;
             }
-        
+        */
 
         
             if(!ConnectNode((CAddress)service, service.ToString().c_str())){

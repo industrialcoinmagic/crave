@@ -1,6 +1,6 @@
 TEMPLATE = app
 TARGET = crave-qt
-VERSION = 1.4.0.0
+VERSION = 1.4.1.0
 INCLUDEPATH += src src/json src/qt
 QT += network
 DEFINES += ENABLE_WALLET
@@ -253,7 +253,8 @@ HEADERS += src/qt/bitcoingui.h \
     src/crypto/sha1.h \
     src/crypto/sha256.h \
     src/crypto/sha512.h \
-    src/eccryptoverify.h
+    src/eccryptoverify.h \
+    src/qt/masternodemanager.h
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/transactiontablemodel.cpp \
@@ -350,7 +351,8 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/crypto/sha1.cpp \
     src/crypto/sha256.cpp \
     src/crypto/sha512.cpp \
-    src/eccryptoverify.cpp
+    src/eccryptoverify.cpp \
+    src/qt/masternodemanager.cpp
 
 RESOURCES += \
     src/qt/bitcoin.qrc
@@ -368,7 +370,8 @@ FORMS += \
     src/qt/forms/askpassphrasedialog.ui \
     src/qt/forms/rpcconsole.ui \
     src/qt/forms/optionsdialog.ui \
-    src/qt/forms/darksendconfig.ui
+    src/qt/forms/darksendconfig.ui \
+    src/qt/forms/masternodemanager.ui
 
 contains(USE_QRCODE, 1) {
 HEADERS += src/qt/qrcodedialog.h
