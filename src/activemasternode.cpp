@@ -225,6 +225,27 @@ bool CActiveMasternode::Dseep(CTxIn vin, CService service, CKey keyMasternode, C
     return true;
 }
 
+bool CActiveMasternode::RegisterByPubKey(std::string strService, std::string strKeyMasternode, std::string collateralAddress, std::string& errorMessage) {
+	CTxIn vin;
+    CPubKey pubKeyCollateralAddress;
+    CKey keyCollateralAddress;
+    CPubKey pubKeyMasternode;
+    CKey keyMasternode;
+
+    if(!darkSendSigner.SetKey(strKeyMasternode, errorMessage, keyMasternode, pubKeyMasternode))
+    {
+    	LogPrintf("CActiveMasternode::RegisterByPubKey() - Error upon calling SetKey: %s\n", errorMessage.c_str());
+    	return false;
+    }
+
+    if(!GetMasterNodeVinForPubKey(collateralAddress, vin, pubKeyCollateralAddress, keyCollateralAddress)) {
+		errorMessage = "could not allocate vin for collateralAddress";
+    	LogPrintf("Register::Register() - Error: %s\n", errorMessage.c_str());
+		return false;
+	}
+	return Register(vin, CService(strService), keyCollateralAddress, pubKeyCollateralAddress, keyMasternode, pubKeyMasternode, errorMessage);
+}
+
 bool CActiveMasternode::Register(std::string strService, std::string strKeyMasternode, std::string txHash, std::string strOutputIndex, std::string& errorMessage) {
 	CTxIn vin;
     CPubKey pubKeyCollateralAddress;
@@ -270,6 +291,7 @@ bool CActiveMasternode::Register(CTxIn vin, CService service, CKey keyCollateral
 	}
 
     bool found = false;
+    LOCK(cs_masternodes);
     BOOST_FOREACH(CMasterNode& mn, vecMasternodes)
         if(mn.vin == vin)
             found = true;
@@ -331,6 +353,49 @@ bool CActiveMasternode::GetMasterNodeVin(CTxIn& vin, CPubKey& pubkey, CKey& secr
 	return GetVinFromOutput(*selectedOutput, vin, pubkey, secretKey);
 }
 
+bool CActiveMasternode::GetMasterNodeVinForPubKey(std::string collateralAddress, CTxIn& vin, CPubKey& pubkey, CKey& secretKey) {
+	return GetMasterNodeVinForPubKey(collateralAddress, vin, pubkey, secretKey, "", "");
+}
+
+bool CActiveMasternode::GetMasterNodeVinForPubKey(std::string collateralAddress, CTxIn& vin, CPubKey& pubkey, CKey& secretKey, std::string strTxHash, std::string strOutputIndex) {
+    CScript pubScript;
+
+    // Find possible candidates
+    vector<COutput> possibleCoins = SelectCoinsMasternodeForPubKey(collateralAddress);
+    COutput *selectedOutput;
+
+    // Find the vin
+	if(!strTxHash.empty()) {
+		// Let's find it
+		uint256 txHash(strTxHash);
+        int outputIndex = boost::lexical_cast<int>(strOutputIndex);
+		bool found = false;
+		BOOST_FOREACH(COutput& out, possibleCoins) {
+			if(out.tx->GetHash() == txHash && out.i == outputIndex)
+			{
+				selectedOutput = &out;
+				found = true;
+				break;
+			}
+		}
+		if(!found) {
+			LogPrintf("CActiveMasternode::GetMasterNodeVinForPubKey - Could not locate valid vin\n");
+			return false;
+		}
+	} else {
+		// No output specified,  Select the first one
+		if(possibleCoins.size() > 0) {
+			selectedOutput = &possibleCoins[0];
+		} else {
+			LogPrintf("CActiveMasternode::GetMasterNodeVinForPubKey - Could not locate specified vin from possible list\n");
+			return false;
+		}
+    }
+
+	// At this point we have a selected output, retrieve the associated info
+	return GetVinFromOutput(*selectedOutput, vin, pubkey, secretKey);
+}
+
 
 // Extract masternode vin information from output
 bool CActiveMasternode::GetVinFromOutput(COutput out, CTxIn& vin, CPubKey& pubkey, CKey& secretKey) {
@@ -372,6 +437,28 @@ vector<COutput> CActiveMasternode::SelectCoinsMasternode()
     BOOST_FOREACH(const COutput& out, vCoins)
     {
         if(out.tx->vout[out.i].nValue == 500*COIN) { //exactly
+        	filteredCoins.push_back(out);
+        }
+    }
+    return filteredCoins;
+}
+
+// get all possible outputs for running masternode for a specific pubkey
+vector<COutput> CActiveMasternode::SelectCoinsMasternodeForPubKey(std::string collateralAddress)
+{
+    CBitcoinAddress address(collateralAddress);
+    CScript scriptPubKey;
+    scriptPubKey.SetDestination(address.Get());
+    vector<COutput> vCoins;
+    vector<COutput> filteredCoins;
+
+    // Retrieve all possible outputs
+    pwalletMain->AvailableCoins(vCoins);
+
+    // Filter
+    BOOST_FOREACH(const COutput& out, vCoins)
+    {
+        if(out.tx->vout[out.i].scriptPubKey == scriptPubKey && out.tx->vout[out.i].nValue == 500*COIN) { //exactly
         	filteredCoins.push_back(out);
         }
     }

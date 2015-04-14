@@ -447,6 +447,10 @@ WalletModel::EncryptionStatus WalletModel::getEncryptionStatus() const
     {
         return Locked;
     }
+    else if(fWalletUnlockStakingOnly)
+    {
+	return Locked;
+    }
     else if (wallet->fWalletUnlockAnonymizeOnly)
     {
         return UnlockedForAnonymizationOnly;
