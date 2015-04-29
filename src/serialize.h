@@ -92,6 +92,10 @@ enum
     // modifiers
     SER_SKIPSIG         = (1 << 16),
     SER_BLOCKHEADERONLY = (1 << 17),
+
+#ifdef USE_NATIVE_I2P
+    SER_IPADDRONLY      = (1 << 18),
+#endif
 };
 
 #define IMPLEMENT_SERIALIZE(statements)    \

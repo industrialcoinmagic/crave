@@ -34,6 +34,10 @@
 #include "ui_interface.h"
 #include "masternodemanager.h"
 
+#ifdef USE_NATIVE_I2P
+#include "showi2paddresses.h"
+#endif
+
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
 #endif
@@ -179,6 +183,16 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     labelStakingIcon = new QLabel();
     labelConnectionsIcon = new QLabel();
     labelBlocksIcon = new QLabel();
+
+#ifdef USE_NATIVE_I2P
+    labelI2PConnections = new QLabel();
+    labelI2POnly = new QLabel();
+    labelI2PGenerated = new QLabel();
+    frameBlocksLayout->addWidget(labelI2PGenerated);
+    frameBlocksLayout->addWidget(labelI2POnly);
+    frameBlocksLayout->addWidget(labelI2PConnections);
+#endif
+
     frameBlocksLayout->addStretch();
     frameBlocksLayout->addWidget(labelEncryptionIcon);
     frameBlocksLayout->addStretch();
@@ -457,7 +471,35 @@ void BitcoinGUI::createToolBars()
 void BitcoinGUI::setClientModel(ClientModel *clientModel)
 {
     if(!fOnlyTor)
+    {
+	#ifdef USE_NATIVE_I2P
+             setNumI2PConnections(clientModel->getNumI2PConnections());
+             connect(clientModel, SIGNAL(numI2PConnectionsChanged(int)), this, SLOT(setNumI2PConnections(int)));
+	if(clientModel->isI2POnly())
+	{
+	     netLabel->setText("I2P");
+             netLabel->setToolTip(tr("Wallet is using I2P-network only"));
+	}
+	else
+	{
+	#endif
+
 	netLabel->setText("CLEARNET");
+	#ifdef USE_NATIVE_I2P
+	}
+
+        if (clientModel->isI2PAddressGenerated())
+        {
+            labelI2PGenerated->setText("DYN");
+            labelI2PGenerated->setToolTip(tr("Wallet is running with a random generated I2P-address"));
+        }
+        else
+        {
+            labelI2PGenerated->setText("STA");
+            labelI2PGenerated->setToolTip(tr("Wallet is running with a static I2P-address"));
+        }
+	#endif
+    }
     else
     {
 	if(!IsLimited(NET_TOR))
@@ -591,6 +633,9 @@ void BitcoinGUI::optionsClicked()
         return;
     OptionsDialog dlg;
     dlg.setModel(clientModel->getOptionsModel());
+#ifdef USE_NATIVE_I2P
+    dlg.setClientModel(clientModel);
+#endif
     dlg.exec();
 }
 
@@ -600,6 +645,31 @@ void BitcoinGUI::aboutClicked()
     dlg.setModel(clientModel);
     dlg.exec();
 }
+
+#ifdef USE_NATIVE_I2P
+void BitcoinGUI::showGeneratedI2PAddr(const QString& caption, const QString& pub, const QString& priv, const QString& b32, const QString& configFileName)
+{
+    ShowI2PAddresses i2pDialog(caption, pub, priv, b32, configFileName, this);
+    i2pDialog.exec();
+}
+#endif
+
+#ifdef USE_NATIVE_I2P
+void BitcoinGUI::setNumI2PConnections(int count)
+{
+    QString i2pIcon;
+    switch(count)
+    {
+    case 0: i2pIcon = ":/icons/bwi2pconnect_0"; break;
+    case 1: /*case 2: case 3:*/ i2pIcon = ":/icons/bwi2pconnect_1"; break;
+    case 2:/*case 4: case 5: case 6:*/ i2pIcon = ":/icons/bwi2pconnect_2"; break;
+    case 3:/*case 7: case 8: case 9:*/ i2pIcon = ":/icons/bwi2pconnect_3"; break;
+    default: i2pIcon = ":/icons/bwi2pconnect_4"; break;
+    }
+    labelI2PConnections->setPixmap(QPixmap(i2pIcon));
+    labelI2PConnections->setToolTip(tr("%n active connection(s) to I2P-Crave network", "", count));
+}
+#endif
 
 void BitcoinGUI::setNumConnections(int count)
 {

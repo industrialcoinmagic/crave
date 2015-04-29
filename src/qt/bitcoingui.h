@@ -79,6 +79,11 @@ private:
     QLabel *labelBlocksIcon;
     QLabel *progressBarLabel;
     QProgressBar *progressBar;
+#ifdef USE_NATIVE_I2P
+    QLabel* labelI2PConnections;
+    QLabel* labelI2POnly;
+    QLabel* labelI2PGenerated;
+#endif
 
     QMenuBar *appMenuBar;
     QAction *overviewAction;
@@ -125,6 +130,9 @@ private:
     void clearWidgets();
 
 public slots:
+#ifdef USE_NATIVE_I2P
+    void setNumI2PConnections(int count);
+#endif
     /** Set number of connections shown in the UI */
     void setNumConnections(int count);
     /** Set number of blocks shown in the UI */
@@ -153,6 +161,9 @@ public slots:
     */
     void askFee(qint64 nFeeRequired, bool *payFee);
     void handleURI(QString strURI);
+#ifdef USE_NATIVE_I2P
+    void showGeneratedI2PAddr(const QString& caption, const QString& pub, const QString& priv, const QString& b32, const QString& configFileName);
+#endif  
 
 private slots:
     /** Switch to overview (home) page */

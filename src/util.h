@@ -238,7 +238,9 @@ std::string FormatFullVersion();
 std::string FormatSubVersion(const std::string& name, int nClientVersion, const std::vector<std::string>& comments);
 void runCommand(std::string strCommand);
 
-
+#ifdef USE_NATIVE_I2P
+std::string FormatI2PNativeFullVersion();
+#endif
 
 
 /**
